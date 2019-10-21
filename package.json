@@ -1,0 +1,43 @@
+{
+  "name": "svrx-plugin-json-server",
+  "version": "1.0.0",
+  "description": "The svrx plugin for json-server",
+  "main": "index.js",
+  "keywords": [
+    "svrx",
+    "svrx-plugin",
+    "json-server"
+  ],
+  "engines": {
+    "svrx": "^1.0.0"
+  },
+  "author": "leeluolee <87399126@163.com>",
+  "scripts": {
+    "start": "node ./example/start.js",
+    "test": "mocha",
+    "lint": "eslint \"**/*.js\"",
+    "lint:fix": "eslint \"**/*.js\" --fix",
+    "prepublishOnly": "npm run lint && npm run test"
+  },
+  "dependencies": {
+    "find-free-port": "^2.0.0",
+    "json-server": "^0.15.1"
+  },
+  "devDependencies": {
+    "@svrx/eslint-config": "^1.0.0",
+    "eslint": "^6.2.0",
+    "global-modules": "^2.0.0",
+    "husky": "^3.0.4",
+    "lint-staged": "^9.2.3",
+    "mocha": "^6.2.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": "eslint --fix"
+  },
+  "license": "MIT"
+}
