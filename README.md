@@ -3,11 +3,19 @@
 [![svrx](https://img.shields.io/badge/svrx-plugin-%23ff69b4?style=flat-square)](https://svrx.io/)
 [![npm](https://img.shields.io/npm/v/svrx-plugin-json-server.svg?style=flat-square)](https://www.npmjs.com/package/svrx-plugin-json-server)
 
-The svrx plugin for [json-server](https://github.com/typicode/json-server), help us to get a full fake REST API with zero coding and integrated with svrx
+The svrx plugin for [json-server](https://github.com/typicode/json-server), help us to get a full fake REST API with zero coding and integrated with [svrx](https://svrx.io/).
 
 ## Usage
 
 > Please make sure that you have installed [svrx](https://svrx.io/) already.
+
+> Example beblow need a `db.json` in your current working directory, and with content like
+> ```js
+>posts: [
+>   { id: 1, title: 'json-server', author: 'typicode' },
+>   { id: 2, title: 'json-server', author: 'typicode2' }
+>]
+> ```
 
 ### Via CLI
 
@@ -22,6 +30,19 @@ const svrx = require('@svrx/svrx');
 
 svrx({ plugins: ['json-server'] }).start();
 ```
+
+### Then...
+
+Visit page `/posts/1` in your browser, you will  
+found that the corresponding post object has been output, like
+
+```js
+{ id: 1, title: 'json-server', author: 'typicode' },
+```
+
+> See [official json-server reference ](https://github.com/typicode/json-server) for more details about json-server
+
+
 
 ## Options
 
@@ -102,6 +123,9 @@ Enable json-server logger (default: false)
 
 Auto fallback to svrx when json-server is 404 (default: true)
 
+## Priority
+
+The json-server middleware's priority is 20, which is small than proxy(21), but bigger than serving(8).
 
 ## License
 
