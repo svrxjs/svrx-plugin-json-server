@@ -1,6 +1,6 @@
 {
   "name": "svrx-plugin-json-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "The svrx plugin for json-server",
   "main": "index.js",
   "keywords": [

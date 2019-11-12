@@ -28,40 +28,31 @@ module.exports = {
         },
       ],
     },
-    filter: {
+    capture: {
       type: 'string',
-      description: 'The request must be proxy to json-server',
-    },
-    fallback: {
-      type: 'boolean',
-      default: true,
-      description: 'auto fallback to svrx when json-server is 404 (default: true)',
+      description: 'Determine which request must be proxy to json-server, default is null',
     },
     logger: {
       type: 'boolean',
       default: false,
       description: 'enable json-server logger (default: false)',
     },
-    rewriter: {
-      type: 'object',
-      default: {},
-      description: 'Add custom routes',
-    },
   },
 
   hooks: {
     // Ref: https://docs.svrx.io/en/contribute/plugin.html#server
     async onCreate({
-      middleware, config, events, 
+      middleware, config, events, router,
     }) {
-      let filter = config.get('filter');
-      if (typeof filter === 'string') filter = new RegExp(filter);
+      let proxy = config.get('proxy'); let
+        filter = proxy;
+      if (typeof proxy === 'string') proxy = new RegExp(filter);
+      if (typeof proxy === 'boolean') filter = () => proxy;
+      if (proxy instanceof RegExp) filter = (path) => proxy.test(path);
 
-      const isFilterRegexp = filter instanceof RegExp;
+      const isFilterFn = typeof filter === 'function';
 
       const source = config.get('source');
-      const fallback = config.get('fallback');
-      const rewriter = config.get('rewriter');
       const loggerConfig = config.get('logger');
 
       const server = jsonServer.create();
@@ -70,29 +61,36 @@ module.exports = {
         logger: loggerConfig,
       }));
 
-      server.use(jsonServer.rewriter(rewriter));
       server.use(jsonServer.router(source));
+
+      let proxyPort;
+
+      function handle(ctx) {
+        return ctx.proxy(ctx, {
+          target: `http://localhost:${proxyPort}`,
+        });
+      }
+
+      router.action('jsonServer', () => async (ctx) => {
+        ctx.originalUrl = ctx.url;
+        await handle(ctx);
+      });
 
       events.on('ready', (port) => {
         getFreePortAfter(port).then((jsonServerPort) => {
           server.listen(jsonServerPort, () => {
-            middleware.add('json-server', {
-              priority: 20,
-              async onRoute(ctx, next) {
-                if (!filter || (isFilterRegexp && filter.test(ctx.path))) {
-                  await ctx.proxy(ctx, {
-                    target: `http://localhost:${jsonServerPort}`,
-                  });
-                  if (ctx.status === 404 && fallback) {
-                    ctx.body = undefined;
-                    ctx.type = '';
-                    ctx.status = 404;
-                    return next();
-                  }
-                }
-                return next();
-              },
-            });
+            proxyPort = jsonServerPort;
+
+
+            if (isFilterFn) {
+              middleware.add('json-server', {
+                priority: 20,
+                onRoute(ctx, next) {
+                  if (filter(ctx.path)) return handle(ctx);
+                  else return next();
+                },
+              });
+            }
           });
         });
       });

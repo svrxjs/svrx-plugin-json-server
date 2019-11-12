@@ -11,10 +11,12 @@ The svrx plugin for [json-server](https://github.com/typicode/json-server), help
 
 > Example beblow need a `db.json` in your current working directory, and with content like
 > ```js
->posts: [
->   { id: 1, title: 'json-server', author: 'typicode' },
->   { id: 2, title: 'json-server', author: 'typicode2' }
->]
+> {
+>   posts: [
+>     { id: 1, title: 'json-server', author: 'typicode' },
+>     { id: 2, title: 'json-server', author: 'typicode2' }
+>   ]
+> }
 > ```
 
 ### Via CLI
@@ -31,17 +33,40 @@ const svrx = require('@svrx/svrx');
 svrx({ plugins: ['json-server'] }).start();
 ```
 
-### Then...
+### Then Play it in your `route.js`
+
+This plugin will register a route action named `jsonServer` which can help to proxy specified request to json-server
+
+> see [svrx routing dsl](https://docs.svrx.io/en/guide/route.html)([中文文档](https://docs.svrx.io/zh/guide/route.html)) for more details
+
+```js
+get('/(.*)').to.jsonServer();
+```
+
+Now, all request will be proxy to json-server. 
 
 Visit page `/posts/1` in your browser, you will  
 found that the corresponding post object has been output, like
 
 ```js
-{ id: 1, title: 'json-server', author: 'typicode' },
+  { id: 1, title: 'json-server', author: 'typicode' },
 ```
 
-> See [official json-server reference ](https://github.com/typicode/json-server) for more details about json-server
 
+
+### request rewrite
+
+By action [rewrite](https://docs.svrx.io/en/guide/route.html#rewrite), you can also rewrite request before proxy to json-server
+
+```js
+get('/api/(.*)').rewrite('/{0}')to.jsonServer()
+// /api/posts >  /posts
+```
+
+
+### And More...
+
+> See [official json-server reference ](https://github.com/typicode/json-server) for more details about json-server
 
 
 ## Options
@@ -69,11 +94,9 @@ svrx({
 });
 ```
 
-#### **filter \[String]:**
+#### **proxy \[String|RegExp|Function]:**
 
-A regular expression string that represents a matching rule to proxy request to json-server.
-
-if filter is not specified,all requests will go through the json-server
+A regular expression string or filter function that represents a matching rule to proxy request to json-server.
 
 ```js
 svrx({
@@ -81,51 +104,18 @@ svrx({
     {
       name: 'json-server',
       options: {
-        filter: 'blog|post' // only blog and post will go through json-server
+        filter: 'blog|post' // blog and post will go through json-server
       }
     }
   ]
 });
 ```
 
-#### **rewriter \[Object]:**
-
-Add custom routes , see [json-server#routes](https://github.com/typicode/json-server#add-custom-routes) for more details
-
-```js
-svrx({
-  plugins: [
-    {
-      name: 'json-server',
-      options: {
-        rewriter: {
-          '/api/*': '/$1',
-          '/:resource/:id/show': '/:resource/:id',
-        }
-      }
-    }
-  ]
-});
-
-// /api/posts  → /posts
-// /api/posts/1   → /posts/1
-// /posts/1/show  → /posts/1
-
-
-```
+> In a simple usage, you can use this option instead of manually declaring a route.
 
 #### **logger \[Object]:**
 
 Enable json-server logger (default: false)
-
-
-#### **fallback \[boolean]:**
-
-Auto fallback to svrx when json-server is 404 (default: true)
-
-## Priority
-
-The json-server middleware's priority is 20, which is small than proxy(21), but bigger than serving(8).
 
 ## License
 
