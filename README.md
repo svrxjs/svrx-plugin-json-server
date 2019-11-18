@@ -104,7 +104,7 @@ svrx({
     {
       name: 'json-server',
       options: {
-        filter: 'blog|post' // blog and post will go through json-server
+        proxy: 'blog|post' // blog and post will go through json-server
       }
     }
   ]
